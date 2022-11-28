@@ -7,6 +7,7 @@ if __name__ == '__main__':
     agent = Agent(0, 0, agent_color=[255, 0, 0])
     # create map showing how many times each cell was visited
     visit_map = np.zeros((game.rows, game.cols), np.uint8)
+    # create 8 agents
     quit = False
     while not quit:
         # display the board

@@ -1,48 +1,57 @@
 import cv2
 import numpy as np
 
+class Agent:
+    def __init__(self, x, y, agent_color=(0, 0, 255)):
+        self.x = x
+        self.y = y
+        self.moves = 0
+        self.agent_color = agent_color
+
+    def reached_goal(self, goal):
+        return self.x == goal[0] and self.y == goal[1]
+
+    def move(self, x, y):
+        self.x = x
+        self.y = y
+        self.moves += 1
+
 class MazeGame:
     def __init__(self, case_size=20, rows=20, cols=20) -> None:
         self.case_size = case_size
         self.rows = rows
         self.cols = cols
         self.board = np.zeros((rows * case_size, cols * case_size, 3), np.uint8)
-        self.agent_pos = (0, 0)
         self.goal_pos = (cols - 1, rows - 1)
-        self.agent_color = [0, 0, 255]
         self.goal_color = [0, 255, 0]
         self.walls_color = [100, 100, 100]
-        self.draw_case(self.agent_pos[0], self.agent_pos[1], self.agent_color)
         self.draw_case(self.goal_pos[0], self.goal_pos[1], self.goal_color)
         self.walls = []
         self.create_walls(100)
-        self.total_moves = 0
 
     def draw_case(self, x, y, color):
         self.board[y * self.case_size:(y + 1) * self.case_size, x * self.case_size:(x + 1) * self.case_size] = color
 
-    def create_walls(self, num_walls):
+    def create_walls(self, num_walls, agents_pos=[]):
         # fix random seed to get the same maze every time
-        np.random.seed(0)
+        np.random.seed(2)
         # create random walls
         for i in range(num_walls):
             x = np.random.randint(0, self.cols)
             y = np.random.randint(0, self.rows)
-            if (x, y) != self.agent_pos and (x, y) != self.goal_pos:
+            if (x, y) not in self.walls and (x, y) != self.goal_pos and (x, y) != agents_pos:
                 self.walls.append((x, y))
 
     def draw_walls(self):
         for wall in self.walls:
             self.draw_case(wall[0], wall[1], self.walls_color)
 
-    def agent_reached_goal(self):
-        return self.agent_pos == self.goal_pos
-
-    def display(self):
+    def display(self, agents_pos=[], agents_colors=[]):
         # clear the board
         self.board = np.zeros((self.rows * self.case_size, self.cols * self.case_size, 3), np.uint8)
-        # draw the agent
-        self.draw_case(self.agent_pos[0], self.agent_pos[1], self.agent_color)
+        # draw the agents
+        for i in range(len(agents_pos)):
+            self.draw_case(agents_pos[i][0], agents_pos[i][1], agents_colors[i])        
         # draw the goal
         self.draw_case(self.goal_pos[0], self.goal_pos[1], self.goal_color)
         # draw the walls
@@ -53,11 +62,7 @@ class MazeGame:
         if key == ord('q'):
             return True
         return False
-    
-    def move_agent(self, x, y):
-        self.total_moves += 1
-        self.agent_pos = (x, y)
-    
+        
     def get_potential_moves(self, curr_pos):
         # curr_pos is a tuple of (x, y)
         # returns a list of tuples of (x, y)
